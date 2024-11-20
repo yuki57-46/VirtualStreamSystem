@@ -15,7 +15,7 @@ EditorBuildSettings:
     path: Assets/Scenes/VRMTest.unity
     guid: 2a9a5a419edf8d8418670bc33df41450
   - enabled: 0
-    path: Assets/MediaPipeUnity/Samples/Scenes/Face Detection/Face Detection 1.unity
+    path: Assets/Scenes/Face Detection 1.unity
     guid: 9d3804a9e3cf2b04dbeb32b8602354c4
   - enabled: 1
     path: Assets/Scenes/WebCameraTest.unity
