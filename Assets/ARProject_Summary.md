@@ -1,0 +1,35 @@
+# ARProject(Unityでのプロジェクト名)の方向性
+
+## 1. ARProjectの目的
+
+このプロジェクトでは、Unityを用いてVRMモデルをARで現実空間に表示し、ユーザの姿勢を認識してモデルを動かすことを目的としています。
+
+## 2. ARProjectの機能
+
+ARProjectには以下の機能があります。
+
+- VRMモデルの表示
+- ユーザの姿勢認識
+- 姿勢認識を元にモデルの姿勢を変更
+- 外側カメラで現実空間を表示
+- 内側カメラでユーザーの姿勢を認識
+- 姿勢認識を行える範囲の設定
+- モデルの表示位置の調整
+- 既存の画像から姿勢推定を行う
+
+## 3. ARProjectの開発環境
+
+ARProjectの開発環境は以下の通りです。
+
+- Unity6
+- ARFoundation
+- ARKit
+- Google ARCore
+
+## 4. ARProjectの実行環境
+
+ARProjectの実行環境は以下の通りです。
+
+- iOS
+- Android
+- Windows(優先度最低)

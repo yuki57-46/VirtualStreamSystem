@@ -1,0 +1,56 @@
+{
+    "name": "InputAction",
+    "maps": [
+        {
+            "name": "Test",
+            "id": "e66ce261-ec44-437b-9490-b19bee4a4580",
+            "actions": [
+                {
+                    "name": "TestTap",
+                    "type": "Button",
+                    "id": "3a03caa6-894e-457e-89a0-9c066a7d3ae4",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": true
+                }
+            ],
+            "bindings": [
+                {
+                    "name": "",
+                    "id": "a2acb607-6d29-4134-8305-2f62d2980809",
+                    "path": "<Pointer>/press",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "TestTap",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "874db5d0-72be-4f94-9b19-75ffa4b57ee7",
+                    "path": "<Mouse>/rightButton",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "TestTap",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "fba286f6-0c73-4e55-a013-ca668adfd75d",
+                    "path": "<Touchscreen>/Press",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "TestTap",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                }
+            ]
+        }
+    ],
+    "controlSchemes": []
+}
