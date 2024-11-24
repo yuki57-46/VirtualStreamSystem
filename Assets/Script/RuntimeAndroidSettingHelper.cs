@@ -1,11 +1,26 @@
 using System.Collections.Generic;
 using UnityEngine;
 using System;
+using UnityEngine.Android;
+//using Unity.Android.Gradle.Manifest;
 
 
-public class RuntimeAndroidSettingHelper
+public class RuntimeAndroidSettingHelper : MonoBehaviour
 {
     private RuntimeAndroidSettingHelper() { }
+
+    private void Start()
+    {
+        // カメラ権限の確認
+        CheckCameraPermission();
+        // Androidの外部ストレージへのアクセス権限を取得
+        //if (!HasUserAuthorizedPermission())
+        //{
+        //    // Androidの外部ストレージへのアクセス権限が許可されていない場合、設定画面を開く
+        //    Request_SettingIntent();
+        //}
+    }
+
     private static AndroidJavaObject GetActivity()
     {
         using (var UnityPlayer = new AndroidJavaClass("com.unity3d.player.UnityPlayer"))
@@ -40,6 +55,21 @@ public class RuntimeAndroidSettingHelper
             return false;
         }
         return isExternalStorageManager;
+    }
+
+    void CheckCameraPermission()
+    {
+        // カメラ権限が許可されているか確認
+        if (Permission.HasUserAuthorizedPermission(Permission.Camera))
+        {
+            // カメラ権限が許可されている場合の処理
+            return;
+        }
+        else
+        {
+            // カメラ権限が許可されていない場合の処理
+            Permission.RequestUserPermission(Permission.Camera);
+        }
     }
 
 }
