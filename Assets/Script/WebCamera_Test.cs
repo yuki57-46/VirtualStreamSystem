@@ -12,6 +12,9 @@ public class WebCamera_Test : MonoBehaviour
     public TMP_Dropdown cameraDropdown; // ユーザがカメラを選択するためのDropdown
     public List<WebCamDevice> availableCameras;
 
+    private float currentCWNeeded = 0f;
+    private WebCamDevice targetDevice;
+
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
@@ -69,18 +72,51 @@ public class WebCamera_Test : MonoBehaviour
 
     private void StartCamera(string cameraName = null)
     {
-        webCam = new WebCamTexture(cameraName/*, webCam.width, webCam.height*/);
+        //webCam = new WebCamTexture(cameraName/*, webCam.width, webCam.height*/);
 
-        // カメラのサイズを設定
-        // availableCmaerasから選択されたカメラのサイズを取得
-        webCam.requestedWidth = webCam.width;
-        webCam.requestedHeight = webCam.height;
+        //// カメラのサイズを設定
+        //// availableCmaerasから選択されたカメラのサイズを取得
+        //webCam.requestedWidth = webCam.width;
+        //webCam.requestedHeight = webCam.height;
+
+        //rawImage.texture = webCam;
+
+        //AdjustRotation(androidCameraHelper.RotationAngle);
+        //Debug.Log("Rotation Angle:" + androidCameraHelper.RotationAngle);
+
+        //webCam.Play(); 
+        webCam = new WebCamTexture(cameraName, Screen.width, Screen.height);
 
         rawImage.texture = webCam;
-        
-        AdjustRotation(androidCameraHelper.RotationAngle);
 
-        webCam.Play(); 
+        webCam.Play();
+
+        Rect uvRectForVideoVerticallyMirrored = new(1f, 0f, -1f, 1f);
+        Rect uvRectForVideoNotVerticallyMirrored = new(0f, 0f, 1f, 1f);
+        Vector3 currentLocalEulerAngle = Vector3.zero;
+
+        if (webCam && webCam.width >= 100f)
+        {
+            currentCWNeeded = targetDevice.isFrontFacing ? webCam.videoRotationAngle : -webCam.videoRotationAngle;
+
+            if (webCam.videoVerticallyMirrored)
+            {
+                currentCWNeeded += 180f;
+            }
+
+            currentLocalEulerAngle.z = currentCWNeeded;
+            rawImage.rectTransform.localEulerAngles = currentLocalEulerAngle;
+
+            if ((webCam.videoVerticallyMirrored && !targetDevice.isFrontFacing) ||
+                (!webCam.videoVerticallyMirrored && targetDevice.isFrontFacing))
+            {
+                rawImage.uvRect = uvRectForVideoVerticallyMirrored;
+            }
+            else
+            {
+                rawImage.uvRect = uvRectForVideoNotVerticallyMirrored;
+            }
+        }
 
     }
 
