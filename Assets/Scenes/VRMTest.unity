@@ -633,7 +633,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 349f73488960edc4caed07822ac46f27, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  vrmFilePath: "C:/Users/yuki/Desktop/3DCG/\u03B3uki_V2_VRM_1.0.vrm"
+  vrmFilePath: 
+  defaultModel: {fileID: 1057769048370604149, guid: 01610cd6e02b49148bfaa0c8479d32b1, type: 3}
 --- !u!4 &968490443
 Transform:
   m_ObjectHideFlags: 0
@@ -667,7 +668,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &1178964991
 MonoBehaviour:
   m_ObjectHideFlags: 0
