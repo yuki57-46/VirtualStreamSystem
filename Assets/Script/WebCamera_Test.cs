@@ -72,24 +72,7 @@ public class WebCamera_Test : MonoBehaviour
 
     private void StartCamera(string cameraName = null)
     {
-        //webCam = new WebCamTexture(cameraName/*, webCam.width, webCam.height*/);
-
-        //// カメラのサイズを設定
-        //// availableCmaerasから選択されたカメラのサイズを取得
-        //webCam.requestedWidth = webCam.width;
-        //webCam.requestedHeight = webCam.height;
-
-        //rawImage.texture = webCam;
-
-        //AdjustRotation(androidCameraHelper.RotationAngle);
-        //Debug.Log("Rotation Angle:" + androidCameraHelper.RotationAngle);
-
-        //webCam.Play(); 
-        webCam = new WebCamTexture(cameraName, Screen.width, Screen.height);
-
-        rawImage.texture = webCam;
-
-        webCam.Play();
+        StartCoroutine(_startCamera(cameraName));
 
         Rect uvRectForVideoVerticallyMirrored = new(1f, 0f, -1f, 1f);
         Rect uvRectForVideoNotVerticallyMirrored = new(0f, 0f, 1f, 1f);
@@ -118,6 +101,57 @@ public class WebCamera_Test : MonoBehaviour
             }
         }
 
+    }
+
+    IEnumerator _startCamera(string cameraName )
+    {
+        // 指定カメラを起動させる
+        webCam = new WebCamTexture(cameraName, Screen.width, Screen.height);
+
+        // RawImageのテクスチャにWebCamTextureのインスタンスを設定
+        rawImage.texture = webCam;
+        // カメラ起動
+        webCam.Play();
+
+        Debug.Log("WebCamTextureのwidth: " + webCam.width);
+        Debug.Log("WebCamTextureのrequestedWidth: " + webCam.requestedWidth);
+
+        webCam.width = webCam.requestedWidth;
+
+        while (webCam.width != webCam.requestedWidth)
+        {
+            // widthが指定したものになっていない場合は処理を抜けて次のフレームで再開
+            Debug.Log("widthが指定したものになっていない");
+            yield return null;
+        }
+        Rect uvRectForVideoVerticallyMirrored = new(1f, 0f, -1f, 1f);
+        Rect uvRectForVideoNotVerticallyMirrored = new(0f, 0f, 1f, 1f);
+        Vector3 currentLocalEulerAngle = Vector3.zero;
+
+        if (webCam && webCam.width >= 100f)
+        {
+            currentCWNeeded = targetDevice.isFrontFacing ? webCam.videoRotationAngle : -webCam.videoRotationAngle;
+
+            if (webCam.videoVerticallyMirrored)
+            {
+                currentCWNeeded += 180f;
+            }
+
+            currentLocalEulerAngle.z = currentCWNeeded;
+            rawImage.rectTransform.localEulerAngles = currentLocalEulerAngle;
+
+            if ((webCam.videoVerticallyMirrored && !targetDevice.isFrontFacing) ||
+                (!webCam.videoVerticallyMirrored && targetDevice.isFrontFacing))
+            {
+                rawImage.uvRect = uvRectForVideoVerticallyMirrored;
+            }
+            else
+            {
+                rawImage.uvRect = uvRectForVideoNotVerticallyMirrored;
+            }
+        }
+
+//        yield break;
     }
 
     private void OnDestroy()
