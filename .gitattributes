@@ -57,3 +57,5 @@ Assets/Plugins/**       linguist-vendored
 LightingData.asset     binary
 Packages/com.github.homuler.mediapipe/Runtime/Plugins/iOS/MediaPipeUnity.framework/MediaPipeUnity filter=lfs diff=lfs merge=lfs -text
 Packages/com.github.homuler.mediapipe/Runtime/Plugins/iOS/MediaPipeUnity.framework/MediaPipeUnity filter=lfs diff=lfs merge=lfs -text
+Assets/TextMesh[[:space:]]Pro/Fonts/BIZ-UDGOTHICR.TTC filter=lfs diff=lfs merge=lfs -text
+Assets/TextMesh[[:space:]]Pro/Resources/Fonts[[:space:]]&[[:space:]]Materials/BIZ-UDGOTHICR[[:space:]]SDF.asset filter=lfs diff=lfs merge=lfs -text
