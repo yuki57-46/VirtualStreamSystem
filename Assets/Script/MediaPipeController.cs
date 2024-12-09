@@ -32,66 +32,43 @@ public class MediaPipeController : MonoBehaviour
 
     private CalculatorGraph graph;
 
-    ResourceManager resourceManager;
+    IResourceManager resourceManager;
+
+    // 設定ファイルのパス
+    private string configAsset;
 
 
-    private async void Start()
+    private IEnumerator Start()
     {
-        // Androidか判定
-        bool isAndroid = Application.platform == RuntimePlatform.Android && !Application.isEditor;
+        if (WebCamTexture.devices.Length == 0)
+        {
+        //    Debug.LogError("カメラが見つかりません");
+        //    yield break;
 
-        // Androidの場合はカメラのデバイスを切り替える
-        var index = !isAndroid ? 0 : 1;
-        var webCamDevices = WebCamTexture.devices[index];
+            throw new System.Exception("カメラが見つかりません");
+        }
+        var webCamDevice = WebCamTexture.devices[0];
 
-        // widthとheightは設定値よりカメラの上限のwidthとheightが低いと書き換えられる
-        // ここで書き換えられた場合、InputTextureの設定が変わるので注意
-        webCamTexture = new WebCamTexture(webCamDevices.name, width, height, fps);
-
+        webCamTexture = new WebCamTexture(webCamDevice.name, width, height, fps);
+        webCamTexture.Play();
         yield return new WaitUntil(() => webCamTexture.width > 16);
+        screen.rectTransform.sizeDelta = new Vector2(width, height);
+        inputTexture = new Texture2D(webCamTexture.width, webCamTexture.height, TextureFormat.RGBA32, false);
+        inputPixelData = new Color32[inputTexture.width * inputTexture.height];
+        var outputTexture = new Texture2D(webCamTexture.width, webCamTexture.height, TextureFormat.RGBA32, false);
+        var outputPixelData = new Color32[outputTexture.width * outputTexture.height];
+        screen.texture = outputTexture;
 
-        // 初期化が早いとMediaPipeの初期化が間に合わないので少し待つ
-        //await WaitForSecondsRealtime(0.5f);
-        await WaitForSeconds(0.5f);
-
-        // Androidの場合はカメラの向きを変更する 縦向きなため
-        if (isAndroid)
-        {
-            screen.rectTransform.sizeDelta = new Vector2(width / 3, height / 3);
-            Vector3 angle = screen.rectTransform.eulerAngles;
-            angle.z = 90;
-            screen.rectTransform.eulerAngles = angle;
-        }
-
-        // カメラの映像をテクスチャに設定
-        inputTexture = new Texture2D(width, height, TextureFormat.RGBA32, false);
-        inputPixelData = new Color32[width * height];
-        screen.texture = inputTexture;
-
-        // モデルの読み込み
+        // MediaPipe
         resourceManager = new StreamingAssetsResourceManager();
+        yield return resourceManager.PrepareAssetAsync("pose_landmark.bytes");
+        yield return resourceManager.PrepareAssetAsync("pose_detection.bytes");
+        var stopwatch = new System.Diagnostics.Stopwatch();
+        graph = new CalculatorGraph(configAsset);
         
-
-
-
-        async Task WaitForSeconds(float seconds)
-        {
-            await Task.Delay(TimeSpan.FromSeconds(seconds));
-        }
-
-        async Task WaitUntilWebCamTexIsReady()
-        {
-            while (webCamTexture.width <= 16)
-            {
-                await Task.Yield();
-            }
-        }
-
-
-
     }
 
-    // Update is called once per frame
+
     void Update()
     {
         
