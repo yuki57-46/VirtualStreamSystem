@@ -4,8 +4,10 @@
 // license that can be found in the LICENSE file or at
 // https://opensource.org/licenses/MIT.
 
+using System;
 using System.Collections;
 using System.IO;
+using System.Resources;
 using UnityEngine;
 using UnityEngine.Networking;
 
@@ -102,5 +104,10 @@ namespace Mediapipe.Unity
       var assetPath = GetAssetPathFor(assetName);
       return File.Exists(assetPath) ? assetPath : Path.Combine(_CachePathRoot, assetName);
     }
-  }
+
+        public static implicit operator ResourceManager(StreamingAssetsResourceManager v)
+        {
+            throw new NotImplementedException();
+        }
+    }
 }

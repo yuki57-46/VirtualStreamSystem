@@ -58,6 +58,11 @@ public class WebCamera_Test : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        if (webCam.height < webCam.requestedHeight)
+        {
+            webCam.height = webCam.requestedHeight;
+            webCam.width = webCam.requestedWidth;
+        }
         
     }
 
@@ -108,8 +113,8 @@ public class WebCamera_Test : MonoBehaviour
             scaletmp.y = -1;
             rawImage.GetComponent<RectTransform>().localScale = scaletmp;
         }
-        
 
+#if !UNITY_EDITOR
         Vector3 angle = rawImage.GetComponent<RectTransform>().eulerAngles;
         angle.z = -webCam.videoRotationAngle;
         rawImage.GetComponent<RectTransform>().eulerAngles = angle;
@@ -142,6 +147,7 @@ public class WebCamera_Test : MonoBehaviour
             }
             rawImage.GetComponent<RectTransform>().localScale = scaletmp;
         }
+#endif
     }
 
     IEnumerator _startCamera(string cameraName )
@@ -165,7 +171,7 @@ public class WebCamera_Test : MonoBehaviour
             Debug.Log("widthが指定したものになっていない");
             yield return null;
         }
-        #if !UNITY_IOS
+#if !UNITY_IOS || !UNITY_EDITOR || !UNITY_ANDROID
         Rect uvRectForVideoVerticallyMirrored = new(1f, 0f, -1f, 1f);
         Rect uvRectForVideoNotVerticallyMirrored = new(0f, 0f, 1f, 1f);
         Vector3 currentLocalEulerAngle = Vector3.zero;
@@ -192,9 +198,9 @@ public class WebCamera_Test : MonoBehaviour
                 rawImage.uvRect = uvRectForVideoNotVerticallyMirrored;
             }
         }
-        #endif
+#endif
 
-//        yield break;
+        yield break;
     }
 
     private void OnDestroy()
