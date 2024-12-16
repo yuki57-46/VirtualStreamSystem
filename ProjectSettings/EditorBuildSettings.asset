@@ -8,15 +8,18 @@ EditorBuildSettings:
   - enabled: 0
     path: Assets/Scenes/SampleScene.unity
     guid: 99c9720ab356a0642a771bea13969a05
-  - enabled: 1
+  - enabled: 0
     path: Assets/Scenes/WebCameraTest.unity
     guid: 001fc33407c698f4c9f3d176da1f0deb
-  - enabled: 1
+  - enabled: 0
     path: Assets/Scenes/ARTest.unity
     guid: 3fbdd7e3e8bf2c94fbc9c2c3ba16ddb9
-  - enabled: 1
+  - enabled: 0
     path: Assets/Scenes/VRMTest.unity
     guid: 2a9a5a419edf8d8418670bc33df41450
+  - enabled: 1
+    path: Assets/Scenes/Official Solution.unity
+    guid: 21b27e0b10c08bd4796e9dca885bc7e4
   - enabled: 0
     path: Assets/Scenes/Face Detection 1.unity
     guid: 9d3804a9e3cf2b04dbeb32b8602354c4

@@ -255,6 +255,11 @@ namespace UniVRM10
             set => LookAtTarget = value;
         }
 
+        public static implicit operator GameObject(Vrm10Instance v)
+        {
+            throw new NotImplementedException();
+        }
+
         #endregion
     }
 }
