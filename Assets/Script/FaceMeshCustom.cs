@@ -48,7 +48,7 @@ namespace Mediapipe.Unity.Tutorial
             {
                 throw new System.Exception("Web Camera devices are not found");
             }
-            bool AOS = Application.platform == RuntimePlatform.Android;
+            bool AOS = Application.platform == RuntimePlatform.Android || Application.platform == RuntimePlatform.IPhonePlayer;
             
             var webCamDevice = WebCamTexture.devices[0];
             if (AOS)
