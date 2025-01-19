@@ -36,6 +36,8 @@ ARProjectの開発環境は以下の通りです。
 - ARFoundation
 - ARKit
 - Google ARCore
+- MediaPipe
+- UniVRM
 
 ## 4. ARProjectの実行環境
 
@@ -43,4 +45,4 @@ ARProjectの実行環境は以下の通りです。
 
 - iOS
 - Android
-- Windows(優先度最低)
+- Windows/macOS/Linux(優先度最低)
