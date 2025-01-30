@@ -1,11 +1,3 @@
-// Copyright (c) 2021 homuler
-//
-// Use of this source code is governed by an MIT-style
-// license that can be found in the LICENSE file or at
-// https://opensource.org/licenses/MIT.
-
-// ATTENTION!: This code is for a tutorial.
-
 using System.Collections;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -18,7 +10,7 @@ using Stopwatch = System.Diagnostics.Stopwatch;
 using System.Resources;
 using System;
 
-namespace Mediapipe.Unity.Tutorial
+namespace Mediapipe.Unity
 {
     public class FaceMeshCustom : MonoBehaviour
     {
@@ -48,14 +40,10 @@ namespace Mediapipe.Unity.Tutorial
             {
                 throw new System.Exception("Web Camera devices are not found");
             }
-            bool AOS = Application.platform == RuntimePlatform.Android || Application.platform == RuntimePlatform.IPhonePlayer;
+            //bool AOS = Application.platform == RuntimePlatform.Android || Application.platform == RuntimePlatform.IPhonePlayer;
             
             var webCamDevice = WebCamTexture.devices[0];
-            if (AOS)
-            {
-                webCamDevice = WebCamTexture.devices[1];
 
-            }
 
             _webCamTexture = new WebCamTexture(webCamDevice.name, _width, _height, _fps);
             _webCamTexture.Play();
@@ -64,13 +52,13 @@ namespace Mediapipe.Unity.Tutorial
             yield return new WaitUntil(() => _webCamTexture.width > 16 && _webCamTexture.height > 16);
 
             // 実際の解像度に基づいて処理を行う
-            int actualWidth = _webCamTexture.width;
-            int actualHeight = _webCamTexture.height;
+            _width = _webCamTexture.width;
+            _height = _webCamTexture.height;
 
-            _screen.rectTransform.sizeDelta = new Vector2(actualWidth, actualHeight);
+            _screen.rectTransform.sizeDelta = new Vector2(_width, _height);
 
-            _inputTexture = new Texture2D(actualWidth, actualHeight, TextureFormat.RGBA32, false);
-            _inputPixelData = new Color32[actualWidth * actualHeight];
+            _inputTexture = new Texture2D(_width, _height, TextureFormat.RGBA32, false);
+            _inputPixelData = new Color32[_width * _height];
 
             _screen.texture = _webCamTexture;
 
@@ -91,6 +79,8 @@ namespace Mediapipe.Unity.Tutorial
             while (true)
             {
                 _inputTexture.SetPixels32(_webCamTexture.GetPixels32(_inputPixelData));
+                _inputTexture.Apply();
+
                 var imageFrame = new ImageFrame(ImageFormat.Types.Format.Srgba, _width, _height, _width * 4, _inputTexture.GetRawTextureData<byte>());
                 var currentTimestamp = stopwatch.ElapsedTicks / (System.TimeSpan.TicksPerMillisecond / 1000);
                 _graph.AddPacketToInputStream("input_video", Packet.CreateImageFrameAt(imageFrame, currentTimestamp));
