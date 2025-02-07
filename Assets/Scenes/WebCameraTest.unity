@@ -872,9 +872,6 @@ GameObject:
   - component: {fileID: 760578693}
   - component: {fileID: 760578692}
   - component: {fileID: 760578696}
-  - component: {fileID: 760578698}
-  - component: {fileID: 760578697}
-  - component: {fileID: 760578699}
   m_Layer: 5
   m_Name: Canvas
   m_TagString: Untagged
@@ -982,48 +979,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   cameraPreview: {fileID: 816037998}
   cameraDropdown: {fileID: 2014230349}
---- !u!114 &760578697
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 760578691}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: c8c963dfc42b03143a582de6d2461239, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
---- !u!114 &760578698
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 760578691}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: dd71d4849b9d99e459fd90206f24984e, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  rawImage: {fileID: 816037998}
-  androidCameraHelper: {fileID: 760578697}
-  cameraDropdown: {fileID: 2014230349}
---- !u!114 &760578699
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 760578691}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: dd71d4849b9d99e459fd90206f24984e, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  rawImage: {fileID: 0}
-  androidCameraHelper: {fileID: 760578697}
-  cameraDropdown: {fileID: 0}
 --- !u!1 &816037996
 GameObject:
   m_ObjectHideFlags: 0
