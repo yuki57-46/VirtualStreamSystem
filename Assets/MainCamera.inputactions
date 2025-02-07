@@ -1,0 +1,34 @@
+{
+    "name": "MainCamera",
+    "maps": [
+        {
+            "name": "CameraController",
+            "id": "364fcbd9-2425-48a7-b488-630d9c3e78f8",
+            "actions": [
+                {
+                    "name": "Wheel",
+                    "type": "Value",
+                    "id": "92f6ac1b-0fb3-497c-82cf-e4cbecb0de92",
+                    "expectedControlType": "Delta",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": true
+                }
+            ],
+            "bindings": [
+                {
+                    "name": "",
+                    "id": "8af4b040-660b-458f-a033-978eed161a73",
+                    "path": "<Mouse>/scroll",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Wheel",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                }
+            ]
+        }
+    ],
+    "controlSchemes": []
+}

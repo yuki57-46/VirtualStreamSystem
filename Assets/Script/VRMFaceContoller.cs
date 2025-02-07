@@ -35,7 +35,7 @@ public class VRMFaceContoller : MonoBehaviour
     private float smoothLeftEyeOpen = 0.0f;
     private float smoothRightEyeOpen = 0.0f;
 
-    private const float SMOOTHFACTOR = 0.1f; // スムージング係数
+    private const float SMOOTHFACTOR = 0.2f; // スムージング係数
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
@@ -137,6 +137,11 @@ public class VRMFaceContoller : MonoBehaviour
         float eVal = widthValue * openValue * 0.7f; // え 口が開いて横に広がる
         float oVal = openValue * (1.0f - widthValue) * 0.9f; // お
 
+        blendShapeProxy.ImmediatelySetValue(BlendShapePreset.A, aVal);
+        blendShapeProxy.ImmediatelySetValue(BlendShapePreset.I, iVal);
+        blendShapeProxy.ImmediatelySetValue(BlendShapePreset.U, uVal);
+        blendShapeProxy.ImmediatelySetValue(BlendShapePreset.E, eVal);
+        blendShapeProxy.ImmediatelySetValue(BlendShapePreset.O, oVal);
 #pragma warning restore CS0618 // 型またはメンバーが旧型式です
 
         // 目の開閉
@@ -163,7 +168,7 @@ public class VRMFaceContoller : MonoBehaviour
 #pragma warning restore CS0618 // 型またはメンバーが旧型式です
 
 
-        Debug.Log($"leftEyeOpen: {leftEyeOpen}, rightEyeOpen: {rightEyeOpen}");
-        Debug.Log($"eyeMultiplier: {eyeMultiplier}");
+       // Debug.Log($"leftEyeOpen: {leftEyeOpen}, rightEyeOpen: {rightEyeOpen}");
+       // Debug.Log($"eyeMultiplier: {eyeMultiplier}");
     }
 }
