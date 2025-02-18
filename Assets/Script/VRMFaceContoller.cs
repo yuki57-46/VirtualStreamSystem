@@ -118,30 +118,33 @@ public class VRMFaceContoller : MonoBehaviour
         float widthValue = Mathf.Clamp01(mouthWidth * mouthMultiplier);
 
 #pragma warning disable CS0618 // 型またはメンバーが旧型式です
-        //if (mouthOpen > baseMouthOpen)
-        //{
-        //    float normalizedMouth = Mathf.Clamp01((mouthOpen * mouthMultiplier)); // 係数調整
-        //    //smoothMouthOpen = Mathf.Lerp(smoothMouthOpen, normalizedMouth, SMOOTHFACTOR);
-        //    blendShapeProxy.ImmediatelySetValue(BlendShapePreset.A, normalizedMouth);
-        //}
-        //else
-        //{
-        //    smoothMouthOpen = Mathf.Lerp(smoothMouthOpen, 0.0f, SMOOTHFACTOR);
-        //    blendShapeProxy.ImmediatelySetValue(BlendShapePreset.A, 0.0f);
-        //}
+        if (mouthOpen > baseMouthOpen)
+        {
+            float normalizedMouth = Mathf.Clamp01((mouthOpen * mouthMultiplier)); // 係数調整
+            //smoothMouthOpen = Mathf.Lerp(smoothMouthOpen, normalizedMouth, SMOOTHFACTOR);
+            blendShapeProxy.ImmediatelySetValue(BlendShapePreset.A, normalizedMouth);
+        }
+        else
+        {
+            smoothMouthOpen = Mathf.Lerp(smoothMouthOpen, 0.0f, SMOOTHFACTOR);
+            blendShapeProxy.ImmediatelySetValue(BlendShapePreset.A, 0.0f);
+        }
 
         // 各母音に対応するBlendShapeに値を設定
-        float aVal = openValue * (1.0f - widthValue); // あ 口が開きつつ幅が狭い
-        float iVal = widthValue * 0.9f; // い 幅が広い
-        float uVal = (1.0f - widthValue) * 0.8f; // う すぼまる
-        float eVal = widthValue * openValue * 0.7f; // え 口が開いて横に広がる
-        float oVal = openValue * (1.0f - widthValue) * 0.9f; // お
+        //float aVal = openValue * (1.0f - widthValue); // あ 口が開きつつ幅が狭い
+        //float iVal = widthValue * 0.9f; // い 幅が広い
+        //float uVal = (1.0f - widthValue) * 0.8f; // う すぼまる
+        //float eVal = widthValue * openValue * 0.7f; // え 口が開いて横に広がる
+        //float oVal = openValue * (1.0f - widthValue) * 0.9f; // お
 
-        blendShapeProxy.ImmediatelySetValue(BlendShapePreset.A, aVal);
-        blendShapeProxy.ImmediatelySetValue(BlendShapePreset.I, iVal);
-        blendShapeProxy.ImmediatelySetValue(BlendShapePreset.U, uVal);
-        blendShapeProxy.ImmediatelySetValue(BlendShapePreset.E, eVal);
-        blendShapeProxy.ImmediatelySetValue(BlendShapePreset.O, oVal);
+        //blendShapeProxy.ImmediatelySetValue(BlendShapePreset.A, aVal);
+        //blendShapeProxy.ImmediatelySetValue(BlendShapePreset.I, iVal);
+        //blendShapeProxy.ImmediatelySetValue(BlendShapePreset.U, uVal);
+        //blendShapeProxy.ImmediatelySetValue(BlendShapePreset.E, eVal);
+        //blendShapeProxy.ImmediatelySetValue(BlendShapePreset.O, oVal);
+
+        //Debug.Log($"aVal: {aVal}, iVal: {iVal}, uVal: {uVal}, eVal: {eVal}, oVal: {oVal}");
+
 #pragma warning restore CS0618 // 型またはメンバーが旧型式です
 
         // 目の開閉

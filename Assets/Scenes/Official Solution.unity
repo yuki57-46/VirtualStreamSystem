@@ -1039,6 +1039,7 @@ GameObject:
   - component: {fileID: 869147454}
   - component: {fileID: 869147453}
   - component: {fileID: 869147452}
+  - component: {fileID: 869147455}
   m_Layer: 0
   m_Name: OfficialSolution
   m_TagString: Untagged
@@ -1112,6 +1113,21 @@ MonoBehaviour:
   _multiFaceLandmarksAnnotationController: {fileID: 6912672}
   _vrmFaceContoller: {fileID: 869147452}
   _dropdown: {fileID: 924460020}
+--- !u!114 &869147455
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 869147449}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6077e9be14ef09c4ab47810e5bab3eff, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  vrmLoder: {fileID: 869147453}
+  leftArmRotation: {x: 0, y: 0, z: 45}
+  rightArmRotation: {x: 0, y: 0, z: -45}
 --- !u!1 &884590454
 GameObject:
   m_ObjectHideFlags: 0
