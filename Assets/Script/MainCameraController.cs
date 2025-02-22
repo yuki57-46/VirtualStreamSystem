@@ -21,7 +21,7 @@ public class MainCameraController : MonoBehaviour
 
     public void OnWheel(InputValue inputValue)
     {
-        Debug.Log("OnWheel" + inputValue.Get<Vector2>());
+        //Debug.Log("OnWheel" + inputValue.Get<Vector2>());
 
         float delta = inputValue.Get<Vector2>().y;
 

@@ -37,6 +37,14 @@ public class VRMFaceContoller : MonoBehaviour
 
     private const float SMOOTHFACTOR = 0.2f; // スムージング係数
 
+#if UNITY_EDITOR
+    // Editor上でのデバッグ用
+    private float openValueMax = 0.0f;  
+    private float widthValueMax = 0.0f;
+    private float openValueMin = 100.0f;
+    private float widthValueMin = 100.0f;
+#endif
+
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
@@ -109,41 +117,93 @@ public class VRMFaceContoller : MonoBehaviour
         );
 
         var mouthWidth = Vector3.Distance(
-            new Vector3(landmarks[78].X, landmarks[78].Y, landmarks[78].Z), //
-            new Vector3(landmarks[308].X, landmarks[308].Y, landmarks[308].Z)  //
+            new Vector3(landmarks[61].X, landmarks[61].Y, landmarks[61].Z), //
+            new Vector3(landmarks[291].X, landmarks[291].Y, landmarks[291].Z)  //
             );
 
+        //mouthWidth = Mathf.Clamp01(mouthWidth * 0.01f); // 係数調整
+        //float beforeMouthWidth = mouthWidth;
+        float mouthMin = 0.05f;
+        float mouthMax = 1.2f;
+        mouthWidth = Mathf.InverseLerp(mouthMin, mouthMax, mouthWidth);
+        //mouthWidth = Mathf.Clamp(mouthWidth * 2.0f, 0.1f, 1.2f);
+        //Debug.Log($"Before Scaling: {beforeMouthWidth}, After Scaling: {mouthWidth}");
+        //mouthOpen = Mathf.Clamp(mouthOpen * 2.0f, 0.01f, 1.0f);
+
         smoothMouthOpen = Mathf.Lerp(smoothMouthOpen, mouthOpen, SMOOTHFACTOR);
-        float openValue = Mathf.Clamp01(smoothMouthOpen * mouthMultiplier);
-        float widthValue = Mathf.Clamp01(mouthWidth * mouthMultiplier);
+        float openValue = Mathf.Clamp(smoothMouthOpen * mouthMultiplier, 0.1f, 3.0f);
+        float widthValue = Mathf.Clamp(mouthWidth * mouthMultiplier * 0.5f, 0.1f, 3.0f);
+
+        Debug.Log($"Processed openValue: {openValue}, Processed widthValue: {widthValue}");
 
 #pragma warning disable CS0618 // 型またはメンバーが旧型式です
-        if (mouthOpen > baseMouthOpen)
-        {
-            float normalizedMouth = Mathf.Clamp01((mouthOpen * mouthMultiplier)); // 係数調整
-            //smoothMouthOpen = Mathf.Lerp(smoothMouthOpen, normalizedMouth, SMOOTHFACTOR);
-            blendShapeProxy.ImmediatelySetValue(BlendShapePreset.A, normalizedMouth);
-        }
-        else
-        {
-            smoothMouthOpen = Mathf.Lerp(smoothMouthOpen, 0.0f, SMOOTHFACTOR);
-            blendShapeProxy.ImmediatelySetValue(BlendShapePreset.A, 0.0f);
-        }
+        //if (mouthOpen > baseMouthOpen)
+        //{
+        //    float normalizedMouth = Mathf.Clamp01((mouthOpen * mouthMultiplier)); // 係数調整
+        //    //smoothMouthOpen = Mathf.Lerp(smoothMouthOpen, normalizedMouth, SMOOTHFACTOR);
+        //    blendShapeProxy.ImmediatelySetValue(BlendShapePreset.A, normalizedMouth);
+        //}
+        //else
+        //{
+        //    smoothMouthOpen = Mathf.Lerp(smoothMouthOpen, 0.0f, SMOOTHFACTOR);
+        //    blendShapeProxy.ImmediatelySetValue(BlendShapePreset.A, 0.0f);
+        //}
 
-        // 各母音に対応するBlendShapeに値を設定
+        //各母音に対応するBlendShapeに値を設定
         //float aVal = openValue * (1.0f - widthValue); // あ 口が開きつつ幅が狭い
         //float iVal = widthValue * 0.9f; // い 幅が広い
         //float uVal = (1.0f - widthValue) * 0.8f; // う すぼまる
         //float eVal = widthValue * openValue * 0.7f; // え 口が開いて横に広がる
         //float oVal = openValue * (1.0f - widthValue) * 0.9f; // お
-
         //blendShapeProxy.ImmediatelySetValue(BlendShapePreset.A, aVal);
         //blendShapeProxy.ImmediatelySetValue(BlendShapePreset.I, iVal);
         //blendShapeProxy.ImmediatelySetValue(BlendShapePreset.U, uVal);
         //blendShapeProxy.ImmediatelySetValue(BlendShapePreset.E, eVal);
         //blendShapeProxy.ImmediatelySetValue(BlendShapePreset.O, oVal);
-
         //Debug.Log($"aVal: {aVal}, iVal: {iVal}, uVal: {uVal}, eVal: {eVal}, oVal: {oVal}");
+
+        string detectedVowel = "None";
+        if (openValue <= 0.1 && widthValue <= 0.13f) detectedVowel = "None"; // 口が開いていない
+        else if (openValue < 0.2f && widthValue < 0.2f && widthValue >= 0.12f) detectedVowel = "U";  // う：口の開きも幅も小さい
+        else if (openValue < 1.0f && widthValue > 0.3f) detectedVowel = "I";  // い：口の開きが小さく、幅が広い
+        else if (openValue > 1.5f && widthValue > 0.4f) detectedVowel = "E";  // え：中間的な形
+        else if (openValue > 1.2f && widthValue < 0.2f /*&& widthValue < 1.1f*/) detectedVowel = "O";  // お：あより幅が狭め
+        else if (openValue < 2.0f && widthValue < 0.3f) detectedVowel = "A";  // あ：口が大きく開いていて幅も広い
+        Debug.Log($"Detected Vowel: {detectedVowel} (openValue: {openValue}, widthValue: {widthValue})");
+
+#if UNITY_EDITOR
+
+        if (openValue > openValueMax)
+        {
+            openValueMax = openValue;
+        }
+        if (widthValue > widthValueMax)
+        {
+            widthValueMax = widthValue;
+        }
+        if (openValue < openValueMin)
+        {
+            openValueMin = openValue;
+        }
+        if (widthValue < widthValueMin)
+        {
+            widthValueMin = widthValue;
+        }
+
+        Debug.Log($"openValueMax: {openValueMax}, widthValueMax: {widthValueMax}");
+        Debug.Log($"openValueMin: {openValueMin}, widthValueMin: {widthValueMin}");
+#endif
+
+
+        blendShapeProxy.ImmediatelySetValue(BlendShapePreset.A, detectedVowel == "A" ? openValue : 0.0f);
+        blendShapeProxy.ImmediatelySetValue(BlendShapePreset.I, detectedVowel == "I" ? openValue : 0.0f);
+        blendShapeProxy.ImmediatelySetValue(BlendShapePreset.U, detectedVowel == "U" ? openValue : 0.0f);
+        blendShapeProxy.ImmediatelySetValue(BlendShapePreset.E, detectedVowel == "E" ? openValue : 0.0f);
+        blendShapeProxy.ImmediatelySetValue(BlendShapePreset.O, detectedVowel == "O" ? openValue : 0.0f);
+
+        //Debug.Log($"detectedVowel: {detectedVowel}");
+        //Debug.Log($"openValue: {openValue}, widthValue: {widthValue}");
+
 
 #pragma warning restore CS0618 // 型またはメンバーが旧型式です
 
