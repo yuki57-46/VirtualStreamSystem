@@ -14,6 +14,7 @@ public class VRMFaceContoller : MonoBehaviour
 {
     [SerializeField] private VRMLoder vrmLoder;
     private VRMBlendShapeProxy blendShapeProxy;
+ 
 
     public Slider eyeSensitivtySlider; // 目の感度調整用
     public Slider mouthSensitivtySlider; // 口の感度調整用
@@ -23,6 +24,8 @@ public class VRMFaceContoller : MonoBehaviour
 
     public float eyeSliderMaxValue = 50.0f; // 目の感度の最大値
     public float mouthSliderMaxValue = 100.0f; // 口の感度の最大値
+
+    public SettingManager settingManager; // 設定ファイルの内容
 
 
     // 目・口の基準値(初回計測用)
@@ -49,6 +52,17 @@ public class VRMFaceContoller : MonoBehaviour
     void Start()
     {
         var vrmModel = vrmLoder.VRMModel;
+
+
+        // 設定ファイルから感度の設定を読み込む
+        if (settingManager != null)
+        {
+            eyeMultiplier = settingManager.settings.eyeSensitivtySlider;
+            mouthMultiplier = settingManager.settings.mouthSensitivtySlider;
+#if UNITY_EDITOR
+            Debug.Log("設定ファイルを読み込みました");
+#endif
+        }
 
         if (vrmModel != null)
         {
@@ -233,5 +247,11 @@ public class VRMFaceContoller : MonoBehaviour
 
        // Debug.Log($"leftEyeOpen: {leftEyeOpen}, rightEyeOpen: {rightEyeOpen}");
        // Debug.Log($"eyeMultiplier: {eyeMultiplier}");
+    }
+
+    // アプリケーション終了時に感度の設定を保存
+    private void OnDestroy()
+    {
+        settingManager.SetSensitivitySettings(eyeMultiplier, mouthMultiplier);
     }
 }

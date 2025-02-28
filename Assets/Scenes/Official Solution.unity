@@ -1040,6 +1040,7 @@ GameObject:
   - component: {fileID: 869147453}
   - component: {fileID: 869147452}
   - component: {fileID: 869147455}
+  - component: {fileID: 869147456}
   m_Layer: 0
   m_Name: OfficialSolution
   m_TagString: Untagged
@@ -1079,6 +1080,7 @@ MonoBehaviour:
   mouthSensitivtySlider: {fileID: 1200347856}
   eyeSliderMaxValue: 50
   mouthSliderMaxValue: 1000
+  settingManager: {fileID: 869147456}
 --- !u!114 &869147453
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1113,6 +1115,7 @@ MonoBehaviour:
   _multiFaceLandmarksAnnotationController: {fileID: 6912672}
   _vrmFaceContoller: {fileID: 869147452}
   _dropdown: {fileID: 924460020}
+  settingManager: {fileID: 0}
 --- !u!114 &869147455
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1128,6 +1131,23 @@ MonoBehaviour:
   vrmLoder: {fileID: 869147453}
   leftArmRotation: {x: 0, y: 0, z: 45}
   rightArmRotation: {x: 0, y: 0, z: -45}
+--- !u!114 &869147456
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 869147449}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c8a78d1401860384ea5fb650029b9a50, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  settings:
+    eyeSensitivtySlider: 0
+    mouthSensitivtySlider: 0
+    cameraIndex: 0
+    cameraName: 
 --- !u!1 &884590454
 GameObject:
   m_ObjectHideFlags: 0

@@ -26,6 +26,8 @@ namespace Mediapipe.Unity
 
         [SerializeField] private TMP_Dropdown _dropdown; // カメラ選択用のドロップダウン
 
+        [SerializeField] private SettingManager settingManager; // 設定ファイルの内容
+
         private CalculatorGraph _graph;
         private OutputStream<List<NormalizedLandmarkList>> _multiFaceLandmarksStream;
         private IResourceManager _resourceManager;
@@ -143,6 +145,7 @@ namespace Mediapipe.Unity
         {
             if (_webCamTexture != null)
             {
+                settingManager.SetCameraSettings(_dropdown.value, _cameraNames[_dropdown.value]);
                 _webCamTexture.Stop();
             }
 
@@ -200,8 +203,18 @@ namespace Mediapipe.Unity
             _dropdown.AddOptions(_cameraNames); // ドロップダウンにカメラ名を追加
             _dropdown.onValueChanged.AddListener(CamaraChanged); // ドロップダウンの選択肢が変更されたときの処理を登録
 
-            // 最初のカメラを選択
-            CamaraChanged(0);
+            // 最初のカメラを選択 / 設定ファイルに保存されたカメラを選択
+            if (settingManager != null)
+            {
+                _dropdown.value = settingManager.settings.cameraIndex;
+                _dropdown.RefreshShownValue();
+            }
+            else
+            {
+                _dropdown.value = 0;
+            }
+
+            CamaraChanged(_dropdown.value);
 
         }
 
