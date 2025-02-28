@@ -37,6 +37,7 @@ public class VRMLoder : MonoBehaviour
 
     public void LoadVRMFile(string filePath)
     {
+
         if (File.Exists(filePath))
         {
             LoadVRM(filePath);
