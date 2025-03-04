@@ -5,7 +5,8 @@ using System.IO;
 using VRM;
 using UniVRM10;
 using UniGLTF;
-
+using SFB;
+using Mediapipe.Unity;
 
 public class VRMLoder : MonoBehaviour
 {
@@ -14,6 +15,7 @@ public class VRMLoder : MonoBehaviour
 
     [SerializeField]
     private GameObject defaultModel;
+    [SerializeField] private VRMFaceContoller faceContoller; // FaceMeshCustom にモデル変更を通知するため
 
     public GameObject VRMModel { get; set; }
 
@@ -30,6 +32,15 @@ public class VRMLoder : MonoBehaviour
     void Update()
     {
         
+    }
+
+    public void OpenFileDialog()
+    {
+        var path = StandaloneFileBrowser.OpenFilePanel("Open VRM File", "", "vrm", false);
+        if (path.Length > 0)
+        {
+            LoadVRMFile(path[0]);
+        }
     }
 
 
@@ -66,38 +77,36 @@ public class VRMLoder : MonoBehaviour
                 materialGenerator: new UrpVrm10MaterialDescriptorGenerator());
 
             model.transform.Rotate(0, 180, 0);
-            VRMModel = (GameObject)model;
+            VRMModel = /*(GameObject)*/model.gameObject;
             AlignModelToCamera(VRMModel);
+
+            // FaceMeshCustom にモデル変更を通知
+            faceContoller = GetComponent<VRMFaceContoller>();
+            if (faceContoller != null)
+            {
+                faceContoller.SetNewVRMModel(VRMModel);
+            }
+
+            var FaceTracker = GetComponent<FaceMeshCustom>();
+            if (FaceTracker != null)
+            {
+                FaceTracker.ResetFaceTracking();
+            }
+            var VRMBodyController = GetComponent<VRMBodyController>();
+            if (VRMBodyController != null)
+            {
+                VRMBodyController.SetAPose();
+            }
+
+        }
+        catch (System.NotImplementedException e)
+        {
+            // このエラーは無視しても問題ないと思われる
         }
         catch (System.Exception e)
         {
             Debug.LogError($"VRM 読み込み失敗: {e.Message}");
         }
-        //if (string.IsNullOrEmpty(vrmFilePath))
-        //{
-
-        //    // 座標系を(+X, +Y, -Z)に変換
-        //    defaultModel.transform.Rotate(0, 180, 0);
-
-        //    // ファイルパスが指定されていない場合はデフォルトのvrmファイルを読み込む
-        //    var model = Instantiate(defaultModel);
-
-        //    VRMModel = model;
-
-        //}
-        //else
-        //{
-        //    GltfData data = new AutoGltfFileParser(vrmFilePath).Parse();
-
-        //    var model = await Vrm10.LoadPathAsync(vrmFilePath, canLoadVrm0X: true, materialGenerator: new UrpVrm10MaterialDescriptorGenerator());
-        //    // 座標系を(+X, +Y, -Z)に変換
-        //    model.transform.Rotate(0, 180, 0);
-
-        //    VRMModel = (GameObject)model;
-
-        //}
-
-        //AlignModelToCamera(VRMModel);
 
     }
 

@@ -39,8 +39,10 @@ public class VRMBodyController : MonoBehaviour
         {
             animator = vrmLoder.VRMModel.GetComponent<Animator>();
             if (animator == null)
+            {
                 Debug.LogWarning("animator is null");
-            return;
+                return;
+            }
         }
 
         Transform leftArm = animator.GetBoneTransform(HumanBodyBones.LeftUpperArm);

@@ -12,8 +12,9 @@ using UnityEngine.UI;
 
 public class VRMFaceContoller : MonoBehaviour
 {
-    [SerializeField] private VRMLoder vrmLoder;
+    public VRMLoder vrmLoder;
     private VRMBlendShapeProxy blendShapeProxy;
+    private Vrm10Instance vrmInstance;
  
 
     public Slider eyeSensitivtySlider; // 目の感度調整用
@@ -51,8 +52,9 @@ public class VRMFaceContoller : MonoBehaviour
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
+        vrmLoder = GetComponent<VRMLoder>();
         var vrmModel = vrmLoder.VRMModel;
-
+        
 
         // 設定ファイルから感度の設定を読み込む
         if (settingManager != null)
@@ -66,7 +68,16 @@ public class VRMFaceContoller : MonoBehaviour
 
         if (vrmModel != null)
         {
-            blendShapeProxy = vrmModel.GetComponent<VRMBlendShapeProxy>(); 
+            blendShapeProxy = vrmModel.GetComponent<VRMBlendShapeProxy>();
+            if (blendShapeProxy == null)
+            {
+                vrmInstance = vrmModel.GetComponent<Vrm10Instance>();
+                if (vrmInstance == null)
+                {
+                    Debug.LogError("VRMBlendShapeProxyが見つかりません");
+                    Debug.LogError("Vrm10Instanceが見つかりません");
+                }
+            }
         }
 
         // スライダーの値を初期化
@@ -113,14 +124,24 @@ public class VRMFaceContoller : MonoBehaviour
             {
                 blendShapeProxy = vrmModel.GetComponent<VRMBlendShapeProxy>();
             }
+            else
+            {
+                vrmInstance = vrmModel.GetComponent<Vrm10Instance>();
+                if (vrmInstance == null)
+                {
+                    Debug.LogError("VRMBlendShapeProxyが見つかりません");
+                    Debug.LogError("Vrm10Instanceが見つかりません");
+                }
+            }
         }
 
 
-        if (blendShapeProxy == null || landmarkList == null)
+
+        if (blendShapeProxy == null && vrmInstance == null  || landmarkList == null)
         {
             return;
         }
-
+        
         // フェイストラッキングの結果を使って、VRMのBlendShapeを操作
         var landmarks = landmarkList.Landmark;
 
@@ -135,14 +156,11 @@ public class VRMFaceContoller : MonoBehaviour
             new Vector3(landmarks[291].X, landmarks[291].Y, landmarks[291].Z)  //
             );
 
-        //mouthWidth = Mathf.Clamp01(mouthWidth * 0.01f); // 係数調整
-        //float beforeMouthWidth = mouthWidth;
+
         float mouthMin = 0.05f;
         float mouthMax = 1.2f;
         mouthWidth = Mathf.InverseLerp(mouthMin, mouthMax, mouthWidth);
-        //mouthWidth = Mathf.Clamp(mouthWidth * 2.0f, 0.1f, 1.2f);
-        //Debug.Log($"Before Scaling: {beforeMouthWidth}, After Scaling: {mouthWidth}");
-        //mouthOpen = Mathf.Clamp(mouthOpen * 2.0f, 0.01f, 1.0f);
+
 
         smoothMouthOpen = Mathf.Lerp(smoothMouthOpen, mouthOpen, SMOOTHFACTOR);
         float openValue = Mathf.Clamp(smoothMouthOpen * mouthMultiplier, 0.1f, 3.0f);
@@ -151,31 +169,7 @@ public class VRMFaceContoller : MonoBehaviour
         Debug.Log($"Processed openValue: {openValue}, Processed widthValue: {widthValue}");
 
 #pragma warning disable CS0618 // 型またはメンバーが旧型式です
-        //if (mouthOpen > baseMouthOpen)
-        //{
-        //    float normalizedMouth = Mathf.Clamp01((mouthOpen * mouthMultiplier)); // 係数調整
-        //    //smoothMouthOpen = Mathf.Lerp(smoothMouthOpen, normalizedMouth, SMOOTHFACTOR);
-        //    blendShapeProxy.ImmediatelySetValue(BlendShapePreset.A, normalizedMouth);
-        //}
-        //else
-        //{
-        //    smoothMouthOpen = Mathf.Lerp(smoothMouthOpen, 0.0f, SMOOTHFACTOR);
-        //    blendShapeProxy.ImmediatelySetValue(BlendShapePreset.A, 0.0f);
-        //}
-
-        //各母音に対応するBlendShapeに値を設定
-        //float aVal = openValue * (1.0f - widthValue); // あ 口が開きつつ幅が狭い
-        //float iVal = widthValue * 0.9f; // い 幅が広い
-        //float uVal = (1.0f - widthValue) * 0.8f; // う すぼまる
-        //float eVal = widthValue * openValue * 0.7f; // え 口が開いて横に広がる
-        //float oVal = openValue * (1.0f - widthValue) * 0.9f; // お
-        //blendShapeProxy.ImmediatelySetValue(BlendShapePreset.A, aVal);
-        //blendShapeProxy.ImmediatelySetValue(BlendShapePreset.I, iVal);
-        //blendShapeProxy.ImmediatelySetValue(BlendShapePreset.U, uVal);
-        //blendShapeProxy.ImmediatelySetValue(BlendShapePreset.E, eVal);
-        //blendShapeProxy.ImmediatelySetValue(BlendShapePreset.O, oVal);
-        //Debug.Log($"aVal: {aVal}, iVal: {iVal}, uVal: {uVal}, eVal: {eVal}, oVal: {oVal}");
-
+        
         string detectedVowel = "None";
         if (openValue <= 0.1 && widthValue <= 0.13f) detectedVowel = "None"; // 口が開いていない
         else if (openValue < 0.2f && widthValue < 0.2f && widthValue >= 0.12f) detectedVowel = "U";  // う：口の開きも幅も小さい
@@ -208,15 +202,28 @@ public class VRMFaceContoller : MonoBehaviour
         Debug.Log($"openValueMin: {openValueMin}, widthValueMin: {widthValueMin}");
 #endif
 
+        if (blendShapeProxy != null)
+        {
 
-        blendShapeProxy.ImmediatelySetValue(BlendShapePreset.A, detectedVowel == "A" ? openValue : 0.0f);
-        blendShapeProxy.ImmediatelySetValue(BlendShapePreset.I, detectedVowel == "I" ? openValue : 0.0f);
-        blendShapeProxy.ImmediatelySetValue(BlendShapePreset.U, detectedVowel == "U" ? openValue : 0.0f);
-        blendShapeProxy.ImmediatelySetValue(BlendShapePreset.E, detectedVowel == "E" ? openValue : 0.0f);
-        blendShapeProxy.ImmediatelySetValue(BlendShapePreset.O, detectedVowel == "O" ? openValue : 0.0f);
+            blendShapeProxy.SetValues(new Dictionary<BlendShapeKey, float>
+            {
+                {BlendShapeKey.CreateFromPreset(BlendShapePreset.A), detectedVowel == "A" ? openValue : 0.0f},
+                {BlendShapeKey.CreateFromPreset(BlendShapePreset.I), detectedVowel == "I" ? openValue : 0.0f},
+                {BlendShapeKey.CreateFromPreset(BlendShapePreset.U), detectedVowel == "U" ? openValue : 0.0f},
+                {BlendShapeKey.CreateFromPreset(BlendShapePreset.E), detectedVowel == "E" ? openValue : 0.0f},
+                {BlendShapeKey.CreateFromPreset(BlendShapePreset.O), detectedVowel == "O" ? openValue : 0.0f}
+            });
+        }
+        else if (vrmInstance != null)
+        {
+            var expression = vrmInstance.Runtime.Expression;
+            expression.SetWeight(ExpressionKey.Aa, detectedVowel == "A" ? openValue : 0.0f);
+            expression.SetWeight(ExpressionKey.Ih, detectedVowel == "I" ? openValue : 0.0f);
+            expression.SetWeight(ExpressionKey.Ou, detectedVowel == "U" ? openValue : 0.0f);
+            expression.SetWeight(ExpressionKey.Ee, detectedVowel == "E" ? openValue : 0.0f);
+            expression.SetWeight(ExpressionKey.Oh, detectedVowel == "O" ? openValue : 0.0f);
+        }
 
-        //Debug.Log($"detectedVowel: {detectedVowel}");
-        //Debug.Log($"openValue: {openValue}, widthValue: {widthValue}");
 
 
 #pragma warning restore CS0618 // 型またはメンバーが旧型式です
@@ -236,17 +243,45 @@ public class VRMFaceContoller : MonoBehaviour
         float normalizedRightEye = Mathf.Clamp01(rightEyeOpen * eyeMultiplier);
 
 
-        //smoothLeftEyeOpen = Mathf.Lerp(smoothLeftEyeOpen, 1.0f - normalizedLeftEye, SMOOTHFACTOR);
-        //smoothRightEyeOpen = Mathf.Lerp(smoothRightEyeOpen, 1.0f - normalizedRightEye, SMOOTHFACTOR);
+        if (blendShapeProxy != null)
+        {
+            blendShapeProxy.SetValues(new Dictionary<BlendShapeKey, float>
+            {
+                {BlendShapeKey.CreateFromPreset(BlendShapePreset.Blink_L), 1.0f - normalizedLeftEye},
+                {BlendShapeKey.CreateFromPreset(BlendShapePreset.Blink_R), 1.0f - normalizedRightEye}
+            });
+        }
+        else if (vrmInstance != null)
+        {
+            var expression = vrmInstance.Runtime.Expression;
+            expression.SetWeight(ExpressionKey.BlinkLeft, 1.0f - normalizedLeftEye);
+            expression.SetWeight(ExpressionKey.BlinkRight, 1.0f - normalizedRightEye);
+        }
 
-#pragma warning disable CS0618 // 型またはメンバーが旧型式です
-        blendShapeProxy.ImmediatelySetValue(BlendShapePreset.Blink_L, 1.0f - normalizedLeftEye);
-        blendShapeProxy.ImmediatelySetValue(BlendShapePreset.Blink_R, 1.0f - normalizedRightEye);
-#pragma warning restore CS0618 // 型またはメンバーが旧型式です
 
+        // Debug.Log($"leftEyeOpen: {leftEyeOpen}, rightEyeOpen: {rightEyeOpen}");
+        // Debug.Log($"eyeMultiplier: {eyeMultiplier}");
+    }
 
-       // Debug.Log($"leftEyeOpen: {leftEyeOpen}, rightEyeOpen: {rightEyeOpen}");
-       // Debug.Log($"eyeMultiplier: {eyeMultiplier}");
+    public void SetNewVRMModel(GameObject newVRM)
+    {
+        if (newVRM == null) return;
+
+        vrmLoder.VRMModel = newVRM;
+        if (newVRM.TryGetComponent(out blendShapeProxy))
+        {
+            blendShapeProxy = newVRM.GetComponent<VRMBlendShapeProxy>();
+        }
+        else if (newVRM.TryGetComponent(out vrmInstance))
+        {
+            vrmInstance = newVRM.GetComponent<Vrm10Instance>();
+        }
+
+        if (blendShapeProxy == null && vrmInstance == null)
+        {
+            Debug.LogError("VRMBlendShapeProxyが見つかりません");
+            Debug.LogError("Vrm10Instanceが見つかりません");
+        }
     }
 
     // アプリケーション終了時に感度の設定を保存
