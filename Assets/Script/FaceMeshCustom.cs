@@ -28,6 +28,10 @@ namespace Mediapipe.Unity
 
         [SerializeField] private SettingManager settingManager; // 設定ファイルの内容
 
+#if UNITY_EDITOR
+        [SerializeField] private bool _isQuaterion = false;
+#endif
+
         private CalculatorGraph _graph;
         private OutputStream<List<NormalizedLandmarkList>> _multiFaceLandmarksStream;
         private IResourceManager _resourceManager;
@@ -37,6 +41,12 @@ namespace Mediapipe.Unity
         private Color32[] _inputPixelData;
 
         private List<string> _cameraNames = new List<string>();
+
+        private Quaternion _initHeadRotation = Quaternion.identity;
+
+        private Vector3 _initHeadRotation_Vec3 = Vector3.zero;
+
+        private bool _hasSetInitHeadRotation = false;
 
         private IEnumerator Start()
         {
@@ -162,6 +172,7 @@ namespace Mediapipe.Unity
                 {
                     _graph.CloseInputStream("input_video");
                     _graph.WaitUntilDone();
+                    _hasSetInitHeadRotation = false;
                 }
                 finally
                 {
@@ -220,12 +231,107 @@ namespace Mediapipe.Unity
                 if (multiFaceLandmarks.Count > 0)
                 {
                     _vrmFaceContoller.UpdateVRMFace(multiFaceLandmarks[0]);
+
+                    // 頭の向きを計算して VRMFaseController に反映
+
+                    // Editor上でQuaternionとVector3の関数
+#if !UNITY_EDITOR
+                    var headRotationBase = GetHeadRotationEuler(multiFaceLandmarks[0]);
+                    _vrmFaceContoller.UpdateHeadRotation(headRotationBase);
+#elif UNITY_EDITOR
+                    
+
+                    if (_isQuaterion)
+                    {
+                        var headRotation = GetHeadRotation(multiFaceLandmarks[0]);
+                        _vrmFaceContoller.UpdateHeadRotation(headRotation);
+                    }
+                    else
+                    {
+                        var headRotationEuler = GetHeadRotationEuler(multiFaceLandmarks[0]);
+                        _vrmFaceContoller.UpdateHeadRotation(headRotationEuler);
+                    }
+#endif
+
                 }
 
                 _multiFaceLandmarksAnnotationController.DrawNow(multiFaceLandmarks.Count > 0 ? multiFaceLandmarks : null);
             }
         }
 
+        private Quaternion GetHeadRotation(NormalizedLandmarkList landmarks)
+        {
+            if (landmarks == null || landmarks.Landmark.Count == 0)
+            {
+                return Quaternion.identity;
+            }
+
+            Vector3 forhead = new Vector3(landmarks.Landmark[10].X, landmarks.Landmark[10].Y, landmarks.Landmark[10].Z);
+            Vector3 chin = new Vector3(landmarks.Landmark[152].X, landmarks.Landmark[152].Y, landmarks.Landmark[152].Z);
+            Vector3 leftCheek = new Vector3(landmarks.Landmark[234].X, landmarks.Landmark[234].Y, landmarks.Landmark[234].Z);
+            Vector3 rightCheek = new Vector3(landmarks.Landmark[454].X, landmarks.Landmark[454].Y, landmarks.Landmark[454].Z);
+            Vector3 nose = new Vector3(landmarks.Landmark[1].X, landmarks.Landmark[1].Y, landmarks.Landmark[1].Z);
+
+            Vector3 forward = (nose - chin).normalized;
+            //Vector3 right = Vector3.Cross(forward, (nose - chin).normalized).normalized;
+            Vector3 right = (rightCheek - leftCheek).normalized;
+            Vector3 up = Vector3.Cross(forward, right).normalized;
+
+            Vector3 horizontal = (rightCheek - leftCheek).normalized;
+            float yaw = Mathf.Atan2(horizontal.x, horizontal.z) * Mathf.Rad2Deg;
+
+            Vector3 vertical = (nose - chin).normalized;
+            float pitch = Mathf.Atan2(vertical.y, vertical.z) * Mathf.Rad2Deg;
+
+            float roll = Mathf.Atan2(rightCheek.y - leftCheek.y, Vector3.Distance(rightCheek, leftCheek)) * Mathf.Rad2Deg;
+
+
+            Quaternion rotation = Quaternion.Euler(-pitch, -yaw, -roll);
+
+            if (!_hasSetInitHeadRotation)
+            {
+                _initHeadRotation = Quaternion.Inverse(rotation);
+                _hasSetInitHeadRotation = true;
+            }
+
+
+            return _initHeadRotation * Quaternion.Euler(-pitch, -yaw, -roll);
+
+
+        }
+
+        public Vector3 GetHeadRotationEuler(NormalizedLandmarkList landmarks)
+        {
+            if (landmarks == null || landmarks.Landmark.Count == 0)
+            {
+                return Vector3.zero;
+            }
+
+            Vector3 forhead = new Vector3(landmarks.Landmark[10].X, landmarks.Landmark[10].Y, landmarks.Landmark[10].Z);
+            Vector3 chin = new Vector3(landmarks.Landmark[152].X, landmarks.Landmark[152].Y, landmarks.Landmark[152].Z);
+            Vector3 leftCheek = new Vector3(landmarks.Landmark[234].X, landmarks.Landmark[234].Y, landmarks.Landmark[234].Z);
+            Vector3 rightCheek = new Vector3(landmarks.Landmark[454].X, landmarks.Landmark[454].Y, landmarks.Landmark[454].Z);
+            Vector3 nose = new Vector3(landmarks.Landmark[1].X, landmarks.Landmark[1].Y, landmarks.Landmark[1].Z);
+
+            Vector3 horizontal = (rightCheek - leftCheek).normalized;
+            float yaw = Mathf.Atan2(horizontal.x, horizontal.z) * Mathf.Rad2Deg;
+
+            Vector3 vertical = (nose - chin).normalized;
+            float pitch = Mathf.Atan2(vertical.y, vertical.z) * Mathf.Rad2Deg;
+
+            float roll = Mathf.Atan2(rightCheek.y - leftCheek.y, Vector3.Distance(rightCheek, leftCheek)) * Mathf.Rad2Deg;
+
+            //roll *= 0.2f;
+
+            if (!_hasSetInitHeadRotation)
+            {
+                _initHeadRotation_Vec3 = new Vector3(pitch, yaw, roll);
+                _hasSetInitHeadRotation = true;
+            }
+
+            return _initHeadRotation_Vec3 + new Vector3(-pitch, -yaw, -roll);
+
+        }
 
         public void ResetFaceTracking()
         {

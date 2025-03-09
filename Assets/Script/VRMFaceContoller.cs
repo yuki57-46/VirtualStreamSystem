@@ -41,6 +41,9 @@ public class VRMFaceContoller : MonoBehaviour
 
     private const float SMOOTHFACTOR = 0.2f; // スムージング係数
 
+    private Transform headBone; // 頭のボーン
+    private Transform NeckBone; // 首のボーン
+
 #if UNITY_EDITOR
     // Editor上でのデバッグ用
     private float openValueMax = 0.0f;  
@@ -226,7 +229,6 @@ public class VRMFaceContoller : MonoBehaviour
 
 
 
-#pragma warning restore CS0618 // 型またはメンバーが旧型式です
 
         // 目の開閉
         var leftEyeOpen = Vector3.Distance(
@@ -261,6 +263,82 @@ public class VRMFaceContoller : MonoBehaviour
 
         // Debug.Log($"leftEyeOpen: {leftEyeOpen}, rightEyeOpen: {rightEyeOpen}");
         // Debug.Log($"eyeMultiplier: {eyeMultiplier}");
+    }
+
+    public void UpdateHeadRotation(Quaternion headRotation)
+    {
+        Quaternion reverseValue = Quaternion.Euler(0.0f, 180.0f, 0.0f);
+
+        if (vrmInstance != null)
+        {
+            headBone = vrmInstance.GetComponent<Animator>().GetBoneTransform(HumanBodyBones.Head);
+            
+            if (headBone != null)
+            {
+                Vector3 adjustedEuler = new Vector3(headRotation.x, -headRotation.y, headRotation.z);
+                headBone.localEulerAngles = adjustedEuler;
+
+                //headBone.rotation = headRotation;
+            }
+            else
+            {
+                Debug.LogError("頭のボーンが見つかりません");
+            }
+        }
+        else if (blendShapeProxy != null)
+        {
+            headBone = vrmLoder.VRMModel.GetComponent<Animator>().GetBoneTransform(HumanBodyBones.Head);
+            if (headBone != null)
+            {
+                Quaternion adjustedRotation = headRotation * reverseValue;
+                headBone.rotation = adjustedRotation;
+
+                //headBone.rotation = headRotation * reverseValue;
+                //headBone.localRotation = headRotation;
+            }
+            else
+            {
+                Debug.LogError("頭のボーンが見つかりません");
+            }
+        }
+        else
+        {
+            Debug.LogError("VRMBlendShapeProxyが見つかりません");
+            Debug.LogError("Vrm10Instanceが見つかりません");
+        }
+    }
+
+    public void UpdateHeadRotation(Vector3 headEulerAngle)
+    {
+        if (vrmInstance != null)
+        {
+            headBone = vrmInstance.GetComponent<Animator>().GetBoneTransform(HumanBodyBones.Head);
+            if (headBone != null)
+            {
+                headBone.localEulerAngles = headEulerAngle;
+            }
+            else
+            {
+                Debug.LogError("頭のボーンが見つかりません");
+            }
+        }
+        else if (blendShapeProxy != null)
+        {
+            headBone = vrmLoder.VRMModel.GetComponent<Animator>().GetBoneTransform(HumanBodyBones.Head);
+            if (headBone != null)
+            {
+                headBone.localEulerAngles = headEulerAngle;
+            }
+            else
+            {
+                Debug.LogError("頭のボーンが見つかりません");
+            }
+        }
+        else
+        {
+            Debug.LogError("VRMBlendShapeProxyが見つかりません");
+            Debug.LogError("Vrm10Instanceが見つかりません");
+        }
     }
 
     public void SetNewVRMModel(GameObject newVRM)

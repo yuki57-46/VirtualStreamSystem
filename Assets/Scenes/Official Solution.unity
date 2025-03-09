@@ -1386,6 +1386,7 @@ MonoBehaviour:
   _vrmFaceContoller: {fileID: 869147452}
   _dropdown: {fileID: 924460020}
   settingManager: {fileID: 0}
+  _isQuaterion: 1
 --- !u!114 &869147455
 MonoBehaviour:
   m_ObjectHideFlags: 0
