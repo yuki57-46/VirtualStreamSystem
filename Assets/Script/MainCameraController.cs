@@ -2,6 +2,7 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.Rendering;
+using UnityEngine.SceneManagement;
 
 public class MainCameraController : MonoBehaviour
 {
@@ -16,7 +17,17 @@ public class MainCameraController : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        
+
+        if (Keyboard.current.rKey.wasPressedThisFrame)
+        {
+            // 再起動
+#if UNITY_STANDALONE_WIN || UNITY_EDITOR_WIN
+            //System.Diagnostics.Process.Start(Application.dataPath + "/../" + Application.productName + ".exe");
+            //Application.Quit();
+            SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+#endif
+        }
+
     }
 
     public void OnWheel(InputValue inputValue)

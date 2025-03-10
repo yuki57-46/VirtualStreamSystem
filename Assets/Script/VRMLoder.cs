@@ -91,6 +91,7 @@ public class VRMLoder : MonoBehaviour
             if (FaceTracker != null)
             {
                 FaceTracker.ResetFaceTracking();
+                FaceTracker.IsFirst = false;
             }
             var VRMBodyController = GetComponent<VRMBodyController>();
             if (VRMBodyController != null)

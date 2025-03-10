@@ -10,6 +10,8 @@ using Stopwatch = System.Diagnostics.Stopwatch;
 using System.Resources;
 using System;
 using TMPro;
+using UniVRM10;
+using VRM;
 
 namespace Mediapipe.Unity
 {
@@ -28,9 +30,7 @@ namespace Mediapipe.Unity
 
         [SerializeField] private SettingManager settingManager; // 設定ファイルの内容
 
-#if UNITY_EDITOR
-        [SerializeField] private bool _isQuaterion = false;
-#endif
+        [SerializeField] private Button _calibrateButton;
 
         private CalculatorGraph _graph;
         private OutputStream<List<NormalizedLandmarkList>> _multiFaceLandmarksStream;
@@ -48,6 +48,12 @@ namespace Mediapipe.Unity
 
         private bool _hasSetInitHeadRotation = false;
 
+        private NormalizedLandmarkList _latestLandmarks = null;
+
+        private bool _isCalibrating = false;
+
+        public bool IsFirst { get; set; } = true; // 初回のみの処理用
+
         private IEnumerator Start()
         {
             CheckCameraPermission();
@@ -62,6 +68,16 @@ namespace Mediapipe.Unity
 
             var screenRect = _screen.GetComponent<RectTransform>().rect;
 
+
+            if (_calibrateButton == null)
+            {
+                throw new System.Exception("Calibrate Button is not set");
+            }
+
+            _calibrateButton.onClick.AddListener(() =>
+            {
+                CalibrateHeadRotation(_latestLandmarks);
+            });
 
         }
 
@@ -172,10 +188,10 @@ namespace Mediapipe.Unity
                 {
                     _graph.CloseInputStream("input_video");
                     _graph.WaitUntilDone();
-                    _hasSetInitHeadRotation = false;
                 }
                 finally
                 {
+                    _hasSetInitHeadRotation = false;
                     _graph.Dispose();
                     _graph = null;
                 }
@@ -208,6 +224,8 @@ namespace Mediapipe.Unity
             _graph.StartRun();
             stopwatch.Start();
 
+ 
+
             while (true)
             {
                 _inputTexture.SetPixels32(_webCamTexture.GetPixels32(_inputPixelData));
@@ -227,31 +245,17 @@ namespace Mediapipe.Unity
                     continue;
                 }
 
+                
                 var multiFaceLandmarks = result.packet.Get(NormalizedLandmarkList.Parser);
                 if (multiFaceLandmarks.Count > 0)
                 {
                     _vrmFaceContoller.UpdateVRMFace(multiFaceLandmarks[0]);
 
-                    // 頭の向きを計算して VRMFaseController に反映
+                    _latestLandmarks = multiFaceLandmarks[0];
 
-                    // Editor上でQuaternionとVector3の関数
-#if !UNITY_EDITOR
+                    // 頭の向きを計算して VRMFaseController に反映
                     var headRotationBase = GetHeadRotationEuler(multiFaceLandmarks[0]);
                     _vrmFaceContoller.UpdateHeadRotation(headRotationBase);
-#elif UNITY_EDITOR
-                    
-
-                    if (_isQuaterion)
-                    {
-                        var headRotation = GetHeadRotation(multiFaceLandmarks[0]);
-                        _vrmFaceContoller.UpdateHeadRotation(headRotation);
-                    }
-                    else
-                    {
-                        var headRotationEuler = GetHeadRotationEuler(multiFaceLandmarks[0]);
-                        _vrmFaceContoller.UpdateHeadRotation(headRotationEuler);
-                    }
-#endif
 
                 }
 
@@ -259,48 +263,8 @@ namespace Mediapipe.Unity
             }
         }
 
-        private Quaternion GetHeadRotation(NormalizedLandmarkList landmarks)
-        {
-            if (landmarks == null || landmarks.Landmark.Count == 0)
-            {
-                return Quaternion.identity;
-            }
 
-            Vector3 forhead = new Vector3(landmarks.Landmark[10].X, landmarks.Landmark[10].Y, landmarks.Landmark[10].Z);
-            Vector3 chin = new Vector3(landmarks.Landmark[152].X, landmarks.Landmark[152].Y, landmarks.Landmark[152].Z);
-            Vector3 leftCheek = new Vector3(landmarks.Landmark[234].X, landmarks.Landmark[234].Y, landmarks.Landmark[234].Z);
-            Vector3 rightCheek = new Vector3(landmarks.Landmark[454].X, landmarks.Landmark[454].Y, landmarks.Landmark[454].Z);
-            Vector3 nose = new Vector3(landmarks.Landmark[1].X, landmarks.Landmark[1].Y, landmarks.Landmark[1].Z);
-
-            Vector3 forward = (nose - chin).normalized;
-            //Vector3 right = Vector3.Cross(forward, (nose - chin).normalized).normalized;
-            Vector3 right = (rightCheek - leftCheek).normalized;
-            Vector3 up = Vector3.Cross(forward, right).normalized;
-
-            Vector3 horizontal = (rightCheek - leftCheek).normalized;
-            float yaw = Mathf.Atan2(horizontal.x, horizontal.z) * Mathf.Rad2Deg;
-
-            Vector3 vertical = (nose - chin).normalized;
-            float pitch = Mathf.Atan2(vertical.y, vertical.z) * Mathf.Rad2Deg;
-
-            float roll = Mathf.Atan2(rightCheek.y - leftCheek.y, Vector3.Distance(rightCheek, leftCheek)) * Mathf.Rad2Deg;
-
-
-            Quaternion rotation = Quaternion.Euler(-pitch, -yaw, -roll);
-
-            if (!_hasSetInitHeadRotation)
-            {
-                _initHeadRotation = Quaternion.Inverse(rotation);
-                _hasSetInitHeadRotation = true;
-            }
-
-
-            return _initHeadRotation * Quaternion.Euler(-pitch, -yaw, -roll);
-
-
-        }
-
-        public Vector3 GetHeadRotationEuler(NormalizedLandmarkList landmarks)
+        public Vector3 GetHeadRotationEuler(NormalizedLandmarkList landmarks, bool Calibration = false)
         {
             if (landmarks == null || landmarks.Landmark.Count == 0)
             {
@@ -329,8 +293,73 @@ namespace Mediapipe.Unity
                 _hasSetInitHeadRotation = true;
             }
 
-            return _initHeadRotation_Vec3 + new Vector3(-pitch, -yaw, -roll);
+            //return _initHeadRotation_Vec3 + new Vector3(-pitch, -yaw, -roll);
 
+            Vector3 currentRotation = new Vector3(-pitch, -yaw, -roll);
+
+            if (IsFirst)
+            {
+                currentRotation = new Vector3(-pitch, -yaw, -roll);
+            }
+
+
+            if (!Calibration)
+            {
+                return _initHeadRotation_Vec3 + currentRotation;
+            }
+            else
+            {
+                return -currentRotation;
+            }
+
+
+        }
+
+        public void CalibrateHeadRotation(NormalizedLandmarkList landmarks)
+        {
+            if (_multiFaceLandmarksStream == null)
+            {
+                Debug.LogError("Face landmark stream is not running");
+                return;
+            }
+
+            //var task = _multiFaceLandmarksStream.WaitNextAsync();
+            //new WaitUntil(() => task.IsCompleted);
+            //var result = task.Result;
+            //if (!result.ok || result.packet == null)
+            //{
+            //    Debug.LogWarning("No face landmark data available for calibration");
+            //    return;
+            //}
+
+            //var landmarks = result.packet.Get(NormalizedLandmarkList.Parser);
+            //var resultLandmarks = result.packet.Get(NormalizedLandmarkList.Parser);
+            if (landmarks == null || landmarks.Landmark.Count == 0)
+            {
+                return;
+            }
+
+            //_hasSetInitHeadRotation = false;
+            _isCalibrating = true;
+
+            //if (_vrmFaceContoller.vrmLoder.VRMModel != null)
+            //{
+            //    var vrmModel = _vrmFaceContoller.vrmLoder.VRMModel;
+
+
+            //    vrmModel.GetComponent<Animator>().GetBoneTransform(HumanBodyBones.Head).localEulerAngles = new Vector3(0, 0, 0);
+            //}
+            // 現在の顔の向きを基準として保存
+            _initHeadRotation_Vec3 = GetHeadRotationEuler(landmarks, _isCalibrating);
+
+            //_hasSetInitHeadRotation = true;
+            _isCalibrating = false;
+
+            Debug.Log("Calibrated Head Rotation");
+
+#if UNITY_EDITOR
+            Debug.Log($"Head Rotation Calibrated: {_initHeadRotation_Vec3}");
+#endif
         }
 
         public void ResetFaceTracking()

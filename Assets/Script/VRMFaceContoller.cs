@@ -171,7 +171,6 @@ public class VRMFaceContoller : MonoBehaviour
 
         Debug.Log($"Processed openValue: {openValue}, Processed widthValue: {widthValue}");
 
-#pragma warning disable CS0618 // 型またはメンバーが旧型式です
         
         string detectedVowel = "None";
         if (openValue <= 0.1 && widthValue <= 0.13f) detectedVowel = "None"; // 口が開いていない
@@ -315,7 +314,7 @@ public class VRMFaceContoller : MonoBehaviour
             headBone = vrmInstance.GetComponent<Animator>().GetBoneTransform(HumanBodyBones.Head);
             if (headBone != null)
             {
-                headBone.localEulerAngles = headEulerAngle;
+                headBone.localEulerAngles = new Vector3(-headEulerAngle.x, headEulerAngle.y, headEulerAngle.z);
             }
             else
             {
@@ -327,7 +326,7 @@ public class VRMFaceContoller : MonoBehaviour
             headBone = vrmLoder.VRMModel.GetComponent<Animator>().GetBoneTransform(HumanBodyBones.Head);
             if (headBone != null)
             {
-                headBone.localEulerAngles = headEulerAngle;
+                headBone.localEulerAngles = new Vector3(headEulerAngle.x, headEulerAngle.y, headEulerAngle.z);
             }
             else
             {
@@ -367,4 +366,6 @@ public class VRMFaceContoller : MonoBehaviour
     {
         settingManager.SetSensitivitySettings(eyeMultiplier, mouthMultiplier);
     }
+
+
 }
