@@ -21,11 +21,7 @@ public class MainCameraController : MonoBehaviour
         if (Keyboard.current.rKey.wasPressedThisFrame)
         {
             // 再起動
-#if UNITY_STANDALONE_WIN || UNITY_EDITOR_WIN
-            //System.Diagnostics.Process.Start(Application.dataPath + "/../" + Application.productName + ".exe");
-            //Application.Quit();
             SceneManager.LoadScene(SceneManager.GetActiveScene().name);
-#endif
         }
 
     }
