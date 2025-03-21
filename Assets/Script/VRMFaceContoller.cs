@@ -162,9 +162,9 @@ public class VRMFaceContoller : MonoBehaviour
 
         float mouthMin = 0.05f;
         float mouthMax = 1.2f;
-        mouthWidth = Mathf.InverseLerp(mouthMin, mouthMax, mouthWidth);
+        mouthWidth = Mathf.InverseLerp(mouthMin, mouthMax, mouthWidth); // 0.0 ~ 1.0に正規化(InverseLerpは逆関数)
 
-
+        // 口の開閉の正規化
         smoothMouthOpen = Mathf.Lerp(smoothMouthOpen, mouthOpen, SMOOTHFACTOR);
         float openValue = Mathf.Clamp(smoothMouthOpen * mouthMultiplier, 0.1f, 3.0f);
         float widthValue = Mathf.Clamp(mouthWidth * mouthMultiplier * 0.5f, 0.1f, 3.0f);

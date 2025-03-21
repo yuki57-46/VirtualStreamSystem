@@ -77,7 +77,7 @@ public class VRMLoder : MonoBehaviour
                 materialGenerator: new UrpVrm10MaterialDescriptorGenerator());
 
             model.transform.Rotate(0, 180, 0);
-            VRMModel = /*(GameObject)*/model.gameObject;
+            VRMModel = model.gameObject;
             AlignModelToCamera(VRMModel);
 
             // FaceMeshCustom にモデル変更を通知
