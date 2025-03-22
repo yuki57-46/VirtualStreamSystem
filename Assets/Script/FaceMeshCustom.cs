@@ -12,6 +12,7 @@ using System;
 using TMPro;
 using UniVRM10;
 using VRM;
+using UnityEngine.InputSystem;
 
 namespace Mediapipe.Unity
 {
@@ -271,7 +272,7 @@ namespace Mediapipe.Unity
                 return Vector3.zero;
             }
 
-            Vector3 forhead = new Vector3(landmarks.Landmark[10].X, landmarks.Landmark[10].Y, landmarks.Landmark[10].Z);
+            //Vector3 forhead = new Vector3(landmarks.Landmark[10].X, landmarks.Landmark[10].Y, landmarks.Landmark[10].Z);
 
 
             Vector3 chin = new Vector3(landmarks.Landmark[152].X, landmarks.Landmark[152].Y, landmarks.Landmark[152].Z);
@@ -283,6 +284,8 @@ namespace Mediapipe.Unity
             float yaw = Mathf.Atan2(horizontal.x, horizontal.z) * Mathf.Rad2Deg; // 顔の横方向の角度
 
             Vector3 vertical = (nose - chin).normalized; // 顔の縦方向 (鼻先から顎の中心)
+            // Vector3 vertical = (forhead - chin).normalized; // 顔の縦方向 (額から顎の中心)
+
             float pitch = Mathf.Atan2(vertical.y, vertical.z) * Mathf.Rad2Deg; // 顔の縦方向の角度
 
             // 顔の傾き
