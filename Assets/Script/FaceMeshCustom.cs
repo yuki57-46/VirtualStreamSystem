@@ -272,20 +272,23 @@ namespace Mediapipe.Unity
             }
 
             Vector3 forhead = new Vector3(landmarks.Landmark[10].X, landmarks.Landmark[10].Y, landmarks.Landmark[10].Z);
+
+
             Vector3 chin = new Vector3(landmarks.Landmark[152].X, landmarks.Landmark[152].Y, landmarks.Landmark[152].Z);
             Vector3 leftCheek = new Vector3(landmarks.Landmark[234].X, landmarks.Landmark[234].Y, landmarks.Landmark[234].Z);
             Vector3 rightCheek = new Vector3(landmarks.Landmark[454].X, landmarks.Landmark[454].Y, landmarks.Landmark[454].Z);
             Vector3 nose = new Vector3(landmarks.Landmark[1].X, landmarks.Landmark[1].Y, landmarks.Landmark[1].Z);
 
-            Vector3 horizontal = (rightCheek - leftCheek).normalized;
-            float yaw = Mathf.Atan2(horizontal.x, horizontal.z) * Mathf.Rad2Deg;
+            Vector3 horizontal = (rightCheek - leftCheek).normalized; // 顔の横方向 (左右の頬の中心)
+            float yaw = Mathf.Atan2(horizontal.x, horizontal.z) * Mathf.Rad2Deg; // 顔の横方向の角度
 
-            Vector3 vertical = (nose - chin).normalized;
-            float pitch = Mathf.Atan2(vertical.y, vertical.z) * Mathf.Rad2Deg;
+            Vector3 vertical = (nose - chin).normalized; // 顔の縦方向 (鼻先から顎の中心)
+            float pitch = Mathf.Atan2(vertical.y, vertical.z) * Mathf.Rad2Deg; // 顔の縦方向の角度
 
+            // 顔の傾き
             float roll = Mathf.Atan2(rightCheek.y - leftCheek.y, Vector3.Distance(rightCheek, leftCheek)) * Mathf.Rad2Deg;
 
-            //roll *= 0.2f;
+            //roll *= 0.2f; // 顔の傾きを調整
 
             if (!_hasSetInitHeadRotation)
             {
