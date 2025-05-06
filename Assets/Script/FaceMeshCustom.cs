@@ -53,12 +53,17 @@ namespace Mediapipe.Unity
 
         private bool _isCalibrating = false;
 
+        private long _baseTimestamp = 0; // ベースタイムスタンプ
+        private long _prevTimestamp = -1; // 前回のタイムスタンプ
+
         public bool IsFirst { get; set; } = true; // 初回のみの処理用
 
         private IEnumerator Start()
         {
             CheckCameraPermission();
             InitCamDropdown();
+
+            StartCoroutine(DelayInit());
 
             if (WebCamTexture.devices.Length == 0)
             {
@@ -84,21 +89,17 @@ namespace Mediapipe.Unity
 
         private void OnDestroy()
         {
-            if (_webCamTexture != null)
-            {
-                settingManager.SetCameraSettings(_dropdown.value, _cameraNames[_dropdown.value]);
-                _webCamTexture.Stop();
-            }
-
-            _multiFaceLandmarksStream?.Dispose();
-            _multiFaceLandmarksStream = null;
-
             if (_graph != null)
             {
                 try
                 {
-                    _graph.CloseInputStream("input_video");
+                    //_graph.CloseInputStream("input_video");
+                    _graph.CloseAllPacketSources();
                     _graph.WaitUntilDone();
+                }
+                catch (Exception e)
+                {
+                    Debug.LogWarning($"Graph shutdown failed: {e.Message}");
                 }
                 finally
                 {
@@ -106,7 +107,20 @@ namespace Mediapipe.Unity
                     _graph = null;
                 }
             }
+
+            // WebCam停止
+            if (_webCamTexture != null)
+            {
+                settingManager.SetCameraSettings(_dropdown.value, _cameraNames[_dropdown.value]);
+                _webCamTexture.Stop();
+            }
+
+            // ストリームやその他のリソースの破棄
+            _multiFaceLandmarksStream?.Dispose();
+            _multiFaceLandmarksStream = null;
         }
+
+
         void CheckCameraPermission()
         {
             // カメラ権限が許可されているか確認
@@ -142,7 +156,7 @@ namespace Mediapipe.Unity
             }
 
             _dropdown.AddOptions(_cameraNames); // ドロップダウンにカメラ名を追加
-            _dropdown.onValueChanged.AddListener(CamaraChanged); // ドロップダウンの選択肢が変更されたときの処理を登録
+            _dropdown.onValueChanged.AddListener(index => StartCoroutine(CamaraChanged(index))); // ドロップダウンの選択肢が変更されたときの処理を登録
 
             // 最初のカメラを選択 / 設定ファイルに保存されたカメラを選択
             if (settingManager != null)
@@ -156,10 +170,9 @@ namespace Mediapipe.Unity
             }
 
             CamaraChanged(_dropdown.value);
-
         }
 
-        private void CamaraChanged(int index)
+        private IEnumerator CamaraChanged(int index)
         {
             if (_webCamTexture != null)
             {
@@ -176,6 +189,11 @@ namespace Mediapipe.Unity
             _webCamTexture = new WebCamTexture(cameraName, _width, _height, _fps);
             _webCamTexture.Play();
             _screen.texture = _webCamTexture;
+
+            // 少し待ってから次の処理を実行
+            yield return new WaitForSeconds(0.5f);
+
+
 
             // トラッキングを再開
             StartCoroutine(RunFaceTracking());
@@ -199,9 +217,23 @@ namespace Mediapipe.Unity
             }
         }
 
+        IEnumerator DelayInit()
+        {
+            yield return null;
+            ResetGraph();
+        }
+
         private IEnumerator RunFaceTracking()
         {
+
+            while (_webCamTexture == null || !_webCamTexture.isPlaying)
+            {
+                yield return null;
+            }
+
             yield return new WaitUntil(() => _webCamTexture.width > 16 && _webCamTexture.height > 16);
+
+            _baseTimestamp = Stopwatch.GetTimestamp(); // 基準タイムスタンプを取得
 
             _width = _webCamTexture.width;
             _height = _webCamTexture.height;
@@ -220,24 +252,67 @@ namespace Mediapipe.Unity
 
             // MediaPipeのグラフを作成
             _graph = new CalculatorGraph(_configAsset.text);
+
+            //_resourceManager = new EmptyResourceManager();
+
             _multiFaceLandmarksStream = new OutputStream<List<NormalizedLandmarkList>>(_graph, "multi_face_landmarks");
             _multiFaceLandmarksStream.StartPolling();
-            _graph.StartRun();
-            stopwatch.Start();
 
- 
+            //yield return new WaitUntil(() => _width > 100);
+
+            _graph.StartRun();
+            //stopwatch.Start();
+            stopwatch = Stopwatch.StartNew();
+            stopwatch.Restart();
+
+            int frameCount = 0;
 
             while (true)
             {
                 _inputTexture.SetPixels32(_webCamTexture.GetPixels32(_inputPixelData));
                 _inputTexture.Apply();
 
-                var imageFrame = new ImageFrame(ImageFormat.Types.Format.Srgba, _width, _height, _width * 4, _inputTexture.GetRawTextureData<byte>());
-                var currentTimestamp = stopwatch.ElapsedTicks / (System.TimeSpan.TicksPerMillisecond / 1000);
-                _graph.AddPacketToInputStream("input_video", Packet.CreateImageFrameAt(imageFrame, currentTimestamp));
+                //var imageFrame = new ImageFrame(ImageFormat.Types.Format.Srgba, _width, _height, _width * 4, _inputTexture.GetRawTextureData<byte>());
+                //var currentTimestamp = stopwatch.ElapsedTicks / (System.TimeSpan.TicksPerMillisecond / 1000);
+                //long currentTimestamp = stopwatch.ElapsedMilliseconds * 1000; // マイクロ秒に変換
+                //long currentTimestamp = (Stopwatch.GetTimestamp() - _baseTimestamp) * 1000000 / Stopwatch.Frequency; // マイクロ秒に変換
+                //long currentTimestamp = frameCount++ * 333333; // 30fpsでのマイクロ秒に変換
+                 //long currentTimestamp = stopwatch.ElapsedMilliseconds * 1000; // マイクロ秒に変換
+
+                //if (currentTimestamp <= _prevTimestamp)
+                //{
+                //    currentTimestamp = _prevTimestamp + 1; // タイムスタンプを1msずらす
+                //}
+                //_prevTimestamp = currentTimestamp;
+
+                ////_graph.AddPacketToInputStream("input_video", Packet.CreateImageFrameAt(imageFrame, currentTimestamp));
+
+                //try
+                //{
+                //    _graph.AddPacketToInputStream("input_video", Packet.CreateImageFrameAt(imageFrame, currentTimestamp));
+                //}
+                //catch (Exception e)
+                //{
+                //    Debug.LogError($"Packet error: {e}");
+                //    yield break; // または continue
+                //}
+                var rawPixels = _inputTexture.GetRawTextureData<byte>();
+                using (var imageFrame = new ImageFrame(ImageFormat.Types.Format.Srgba, _width, _height, _width * 4, rawPixels))
+                {
+                    long currentTimestamp = frameCount++ * 33333; // 30fps
+                    _graph.AddPacketToInputStream("input_video", Packet.CreateImageFrameAt(imageFrame, currentTimestamp));
+                }
+
+
 
                 var task = _multiFaceLandmarksStream.WaitNextAsync();
-                yield return new WaitUntil(() => task.IsCompleted);
+                float startTime = Time.time;
+                yield return new WaitUntil(() => task.IsCompleted || Time.time - startTime > 2.0f);
+                if (task.IsFaulted)
+                {
+                    Debug.LogError($"Task faulted: {task.Exception}");
+                    yield break; // または continue
+                }
                 
                 var result = task.Result;
                 if (!result.ok || result.packet == null)
@@ -272,8 +347,6 @@ namespace Mediapipe.Unity
                 return Vector3.zero;
             }
 
-            //Vector3 forhead = new Vector3(landmarks.Landmark[10].X, landmarks.Landmark[10].Y, landmarks.Landmark[10].Z);
-
 
             Vector3 chin = new Vector3(landmarks.Landmark[152].X, landmarks.Landmark[152].Y, landmarks.Landmark[152].Z);
             Vector3 leftCheek = new Vector3(landmarks.Landmark[234].X, landmarks.Landmark[234].Y, landmarks.Landmark[234].Z);
@@ -284,7 +357,6 @@ namespace Mediapipe.Unity
             float yaw = Mathf.Atan2(horizontal.x, horizontal.z) * Mathf.Rad2Deg; // 顔の横方向の角度
 
             Vector3 vertical = (nose - chin).normalized; // 顔の縦方向 (鼻先から顎の中心)
-            // Vector3 vertical = (forhead - chin).normalized; // 顔の縦方向 (額から顎の中心)
 
             float pitch = Mathf.Atan2(vertical.y, vertical.z) * Mathf.Rad2Deg; // 顔の縦方向の角度
 
